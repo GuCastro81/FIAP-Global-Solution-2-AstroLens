@@ -19,6 +19,7 @@ from src.agents.exoplanet_spectrum_agent import (
 from src.agents.research_agent import ResearchAgent, ResearchResult
 from src.agents.science_writer_agent import ScienceReport, ScienceWriterAgent
 from src.agents.vision_agent import VisionAgent, VisionAnalysisResult
+from src.reporting.artist_concept_prompt_enhancer import ArtistConceptPromptEnhancer
 from src.reporting.exoplanet_reporter import ExoplanetReport, ExoplanetReporter
 from src.services.gemini_service import GeminiService
 from src.services.nasa_service import NASAImage, NASAService, NASAServiceError
@@ -441,8 +442,26 @@ def _render_exoplanet_results(
             "Scientific Relevance", exoplanet_report.scientific_relevance
         )
 
+    enhanced_prompt = ArtistConceptPromptEnhancer().enhance(
+        planet_name=atmosphere_result.planet,
+        detected_molecules=atmosphere_result.detected_molecules,
+        exoplanet_report=exoplanet_report,
+        original_artist_concept_prompt=exoplanet_report.artist_concept_prompt,
+    )
+
     st.subheader("Artist Concept Prompt")
-    st.code(exoplanet_report.artist_concept_prompt, language="text")
+    original_tab, enhanced_tab, constraints_tab, negative_tab = st.tabs(
+        [
+            "Original Prompt",
+            "Enhanced Prompt",
+            "Scientific Constraints",
+            "Negative Prompt",
+        ]
+    )
+    original_tab.code(exoplanet_report.artist_concept_prompt, language="text")
+    enhanced_tab.code(enhanced_prompt.enhanced_artist_prompt, language="text")
+    constraints_tab.json(asdict(enhanced_prompt)["scientific_constraints"])
+    negative_tab.code(enhanced_prompt.negative_prompt, language="text")
 
 
 def _render_report_section(title: str, body: str) -> None:

@@ -34,55 +34,187 @@
 
 - `PREENCHER: nome e link do coordenador`
 
-## Descrição
+## Resumo executivo
 
-AstroLens AI é uma aplicação de inteligência artificial para análise de imagens
-astronômicas e geração de relatórios científicos acessíveis. A solução combina
-visão computacional multimodal, agentes especializados, consulta a fontes
-astronômicas e uma interface interativa construída com Streamlit.
+AstroLens AI é uma plataforma inteligente para análise de imagens astronômicas e interpretação educacional de dados atmosféricos de exoplanetas. A solução utiliza IA Generativa, Visão Computacional e Sistemas Multiagentes para democratizar o acesso ao conhecimento astronômico, permitindo que usuários explorem imagens públicas da NASA, recebam classificações automáticas de objetos celestes e compreendam conceitos científicos por meio de relatórios em linguagem acessível.
 
-O fluxo principal começa com uma imagem enviada pelo usuário ou selecionada na
-NASA Image and Video Library. O `VisionAgent`, apoiado pelo Gemini Vision,
-classifica o objeto observado, estima a confiança da análise e identifica
-objetos e tags científicas. Em seguida, o `ResearchAgent` consulta a base de
-conhecimento local para recuperar definições, relevância científica,
-contribuições para a exploração espacial e possíveis impactos na Terra. O
-`ScienceWriterAgent` consolida essas informações em um relatório estruturado,
-com resumo científico, importância para a exploração espacial, impacto
-terrestre e curiosidades.
+O projeto também incorpora um módulo dedicado à interpretação de visualizações científicas do James Webb Space Telescope (JWST), com foco no exoplaneta K2-18 b. Esse recurso demonstra como dados de missões espaciais podem ser transformados em comunicação científica, apoiando educação, divulgação astronômica e interesse social por exploração espacial.
 
-A página NASA Explorer permite pesquisar imagens reais da biblioteca pública da
-NASA, visualizar os resultados e enviar uma imagem selecionada pelo mesmo
-pipeline de análise. Os resultados de cada etapa são persistidos em JSON por
-meio do `ResultStorageService`, permitindo auditoria e consulta posterior no
-dashboard.
+AstroLens AI posiciona a tecnologia como ponte entre pesquisa científica e sociedade. Ao automatizar etapas de análise, recuperação de conhecimento e geração textual, a plataforma facilita o entendimento de fenômenos astronômicos complexos e reforça o papel da inteligência artificial como ferramenta de apoio à educação, ciência cidadã e exploração do espaço.
 
-O projeto demonstra integração de IA generativa, visão multimodal, arquitetura
-multiagente, consumo de API pública, persistência de resultados e comunicação
-científica. Seu objetivo é aproximar conteúdos de astronomia do público e
-evidenciar como tecnologias desenvolvidas para pesquisa espacial podem gerar
-conhecimento e aplicações relevantes para a sociedade.
+## Descrição da solução
+
+AstroLens AI é uma aplicação desenvolvida em Python com interface Streamlit para análise inteligente de dados astronômicos. A plataforma integra:
+
+- IA Generativa para criação de explicações científicas.
+- Visão Computacional com Gemini Vision para análise de imagens.
+- Arquitetura multiagente para separação de responsabilidades.
+- Recuperação de conhecimento científico em estilo RAG.
+- Geração de linguagem natural para relatórios educacionais.
+- APIs públicas de dados espaciais.
+- Dados da NASA e visualizações do JWST.
+- Comunicação científica voltada ao público acadêmico e educacional.
+- Pipelines de dados com persistência estruturada em JSON.
+
+O fluxo principal permite que o usuário envie uma imagem astronômica ou selecione um recurso da NASA Image and Video Library. Em seguida, agentes especializados classificam o objeto observado, recuperam conhecimento científico de uma base curada, geram um relatório explicativo e armazenam os resultados para consulta posterior.
+
+Além do pipeline de imagens astronômicas, o projeto inclui um módulo independente chamado Exoplanet Atmosphere Visualizer, responsável por interpretar uma visualização publicada sobre a composição atmosférica do exoplaneta K2-18 b. Esse módulo não realiza medições científicas reais nem ajuste espectral; seu objetivo é demonstrar interpretação educacional baseada em dados científicos publicados.
 
 ## Arquitetura da solução
 
+A arquitetura do AstroLens AI foi organizada em módulos independentes, mantendo baixo acoplamento entre interface, agentes, serviços externos, recuperação de conhecimento e persistência.
+
 ```text
-Imagem local ou NASA Image Library
-              |
-              v
-         VisionAgent
-              |
-              v
-        ResearchAgent
-              |
-              v
-    ScienceWriterAgent
-              |
-              v
- ResultStorageService + Streamlit
+Dados NASA/JWST ou imagem enviada pelo usuário
+                |
+                v
+        Interface Streamlit
+                |
+                v
+     Orquestração Multiagente
+                |
+   +------------+-------------+
+   |                          |
+   v                          v
+Pipeline de Imagens     Visualizador de Exoplanetas
+   |                          |
+   v                          v
+VisionAgent             ExoplanetSpectrumAgent
+   |                          |
+   v                          v
+ResearchAgent           ExoplanetReporter
+   |
+   v
+ScienceWriterAgent
+                |
+                v
+     ResultStorageService
+                |
+                v
+      Dashboard e histórico
 ```
 
-A descrição detalhada dos módulos e contratos está em
-[`docs/architecture.md`](docs/architecture.md).
+### Módulo 1: NASA Explorer
+
+O NASA Explorer permite consultar a NASA Image and Video Library, visualizar resultados reais da base pública da NASA e encaminhar imagens selecionadas para o pipeline de análise astronômica. Esse módulo demonstra integração com API pública, consumo de dados espaciais e aplicação prática de IA sobre acervos científicos.
+
+### Módulo 2: Análise de Imagens Astronômicas
+
+Esse módulo executa o pipeline principal do AstroLens AI. Uma imagem local ou uma imagem obtida via NASA Explorer é processada pelo `VisionAgent`, enriquecida pelo `ResearchAgent` e convertida em relatório pelo `ScienceWriterAgent`.
+
+### Módulo 3: Exoplanet Atmosphere Visualizer
+
+Módulo independente para interpretação educacional da visualização atmosférica do exoplaneta K2-18 b baseada em dados do JWST. Ele utiliza o `ExoplanetSpectrumAgent` para identificar informações visíveis no gráfico e gera uma explicação científica estruturada.
+
+### Módulo 4: Knowledge Base / Scientific Retrieval Layer
+
+Camada de recuperação de conhecimento científico composta por arquivos curados em `data/knowledge_base/`. Essa base fornece contexto astronômico para a geração de explicações, seguindo princípios de Retrieval-Augmented Generation.
+
+### Módulo 5: Multi-Agent Orchestration
+
+A orquestração multiagente separa tarefas de visão, pesquisa, redação e interpretação de exoplanetas. Essa divisão reduz ambiguidades, melhora a rastreabilidade dos resultados e permite evolução independente de cada componente.
+
+A descrição técnica detalhada também está disponível em [`docs/architecture.md`](docs/architecture.md).
+
+## Sistema Multiagente
+
+| Agente | Responsabilidade | Entrada | Saída |
+| --- | --- | --- | --- |
+| `VisionAgent` | Classificar imagens astronômicas usando Gemini Vision. | Imagem local ou imagem obtida da NASA. | Classe astronômica, confiança, descrição, objetos e tags científicas. |
+| `ResearchAgent` | Recuperar conhecimento científico da base curada. | Resultado do `VisionAgent`. | Definição, importância científica, relevância para exploração espacial e impacto na Terra. |
+| `ScienceWriterAgent` | Gerar relatório científico em linguagem acessível. | Saídas do `VisionAgent` e `ResearchAgent`. | Resumo científico, importância espacial, impacto e curiosidades. |
+| `ExoplanetSpectrumAgent` | Interpretar a visualização atmosférica de K2-18 b com Gemini Vision. | Gráfico `atmosphere_composition.jpg`. | JSON com planeta, tipo, moléculas detectadas, confiança e resumo. |
+
+## Arquitetura de Recuperação de Conhecimento (RAG)
+
+O AstroLens AI adota princípios de Retrieval-Augmented Generation. Antes de gerar explicações finais, o `ResearchAgent` consulta uma base de conhecimento astronômica curada, localizada em `data/knowledge_base/`.
+
+Essa etapa reduz a dependência exclusiva do modelo generativo e fornece contexto científico estruturado para o `ScienceWriterAgent`. Na prática, o sistema recupera informações relevantes sobre galáxias, nebulosas, estrelas, aglomerados e planetas antes da geração textual.
+
+```text
+Classificação do VisionAgent
+          |
+          v
+Busca na base de conhecimento
+          |
+          v
+Contexto científico recuperado
+          |
+          v
+Geração aumentada por recuperação
+```
+
+## Visualizador de Atmosferas de Exoplanetas
+
+O Exoplanet Atmosphere Visualizer é um módulo educacional dedicado ao exoplaneta K2-18 b, um objeto de grande interesse em estudos de atmosferas planetárias fora do Sistema Solar.
+
+O módulo utiliza a imagem:
+
+```text
+data/images/exoplanets/k2-18b/atmosphere_composition.jpg
+```
+
+A visualização contém informações associadas à composição atmosférica observada em dados publicados do JWST. O sistema interpreta os rótulos presentes no gráfico, incluindo:
+
+- Methane, ou metano.
+- Carbon Dioxide, ou dióxido de carbono.
+- Dimethyl Sulfide, ou sulfeto de dimetila.
+
+O objetivo é gerar uma interpretação científica educacional, um relatório estruturado e um prompt de conceito artístico para uso futuro em módulos de geração de imagens. O sistema não realiza cálculo espectral, ajuste de picos, estimativa de abundância química nem validação científica independente.
+
+## Pipeline de Dados
+
+```text
+NASA/JWST Data
+      ↓
+Vision Analysis
+      ↓
+Knowledge Retrieval
+      ↓
+Scientific Interpretation
+      ↓
+Report Generation
+      ↓
+Dashboard
+```
+
+| Etapa | Descrição |
+| --- | --- |
+| NASA/JWST Data | Dados públicos da NASA, imagens astronômicas e visualização atmosférica do JWST. |
+| Vision Analysis | Análise visual com Gemini Vision para classificação ou extração de informações visíveis. |
+| Knowledge Retrieval | Recuperação de conteúdo científico em base local curada. |
+| Scientific Interpretation | Interpretação educacional dos resultados por agentes especializados. |
+| Report Generation | Geração de relatórios em linguagem natural com tom científico. |
+| Dashboard | Apresentação interativa, histórico e inspeção dos JSONs estruturados. |
+
+## Tecnologias e conceitos FIAP implementados
+
+| Conceito | Status | Aplicação no projeto |
+| --- | --- | --- |
+| IA Generativa | ✔ Implementado | Geração de relatórios científicos e explicações educacionais. |
+| Visão Computacional | ✔ Implementado | Análise de imagens astronômicas e gráfico atmosférico. |
+| Sistemas Multiagentes | ✔ Implementado | Agentes especializados para visão, pesquisa, redação e exoplanetas. |
+| NLP | ✔ Implementado | Geração e estruturação de linguagem natural. |
+| RAG | ✔ Implementado | Recuperação de conhecimento científico antes da geração textual. |
+| APIs Cognitivas | ✔ Implementado | Integração com Google Gemini. |
+| Integração de APIs | ✔ Implementado | Consumo da NASA Image and Video Library API. |
+| Pipeline de Dados | ✔ Implementado | Fluxo completo de entrada, análise, interpretação, persistência e visualização. |
+| Computação em Nuvem | ✔ Arquitetura preparada | Aplicação preparada para deploy em ambiente cloud. |
+| Exploração Espacial | ✔ Implementado | Uso de dados NASA e visualização baseada em JWST. |
+| Comunicação Científica | ✔ Implementado | Relatórios educacionais e linguagem acessível. |
+
+## Funcionalidades
+
+- Upload e pré-visualização de imagens astronômicas.
+- Classificação de galáxias, nebulosas, estrelas, aglomerados e planetas.
+- Pesquisa de imagens na biblioteca pública da NASA.
+- Pipeline multiagente para análise e geração de relatório.
+- Recuperação de conhecimento científico em base curada.
+- Persistência dos resultados de visão, pesquisa, relatório e exoplanetas.
+- Consulta de análises anteriores.
+- Exibição dos dados estruturados usados por cada agente.
+- Visualizador educacional de atmosfera do exoplaneta K2-18 b.
+- Geração de prompt para conceito artístico científico de exoplaneta.
 
 ## Estrutura de pastas
 
@@ -96,13 +228,16 @@ Global-Solution-2/
 ├── data/
 │   ├── analysis_results/
 │   ├── images/
+│   │   └── exoplanets/
+│   │       └── k2-18b/
 │   └── knowledge_base/
 ├── docs/
 │   ├── architecture.md
 │   ├── roadmap.md
 │   ├── data-sources.md
 │   ├── glossary.md
-│   └── nasa_service.md
+│   ├── nasa_service.md
+│   └── exoplanet_visualizer.md
 ├── scripts/
 ├── src/
 │   ├── agents/
@@ -120,30 +255,33 @@ Global-Solution-2/
 └── tests/
 ```
 
-- **docs**: documentação técnica, arquitetura, fontes e planejamento.
-- **src**: agentes, serviços, persistência e demais módulos da aplicação.
-- **data**: imagens, base de conhecimento e resultados estruturados.
-- **tests**: testes unitários dos serviços, agentes e armazenamento.
-- **scripts**: testes de integração e utilitários de execução.
+- **docs**: documentação técnica, arquitetura, fontes, planejamento e módulo de exoplanetas.
+- **src**: agentes, serviços, persistência, RAG, relatórios e demais módulos da aplicação.
+- **data**: imagens, base de conhecimento, gráfico de K2-18 b e resultados estruturados.
+- **tests**: testes unitários dos serviços, agentes, relatórios e armazenamento.
+- **scripts**: testes de integração, smoke tests e utilitários de execução.
 - **configs**: configurações auxiliares.
 - **app.py**: ponto de entrada do dashboard Streamlit.
 
 ## Tecnologias utilizadas
 
-- Python 3.11
-- Streamlit 1.58
-- Google Gemini API (`google-genai`)
-- NASA Image and Video Library API
-- Plotly
-- `unittest`
+| Tecnologia | Uso |
+| --- | --- |
+| Python 3.11 | Linguagem principal da solução. |
+| Streamlit 1.58 | Interface web e dashboard interativo. |
+| Google Gemini API (`google-genai`) | IA generativa, visão multimodal e geração textual. |
+| NASA Image and Video Library API | Pesquisa e uso de imagens astronômicas públicas. |
+| Plotly | Base para visualizações e evolução analítica. |
+| `unittest` | Testes automatizados. |
+| JSON | Persistência estruturada dos resultados dos agentes. |
 
 ## Como executar
 
 ### Pré-requisitos
 
-- Python 3.11 ou compatível
-- Chave válida para a API Gemini
-- Acesso à internet para Gemini e NASA Image Library
+- Python 3.11 ou compatível.
+- Chave válida para a API Gemini.
+- Acesso à internet para Gemini e NASA Image Library.
 
 ### Instalação
 
@@ -167,8 +305,11 @@ GEMINI_API_KEY=sua_chave_gemini
 streamlit run app.py
 ```
 
-A aplicação será disponibilizada normalmente em
-`http://localhost:8501`.
+A aplicação será disponibilizada normalmente em:
+
+```text
+http://localhost:8501
+```
 
 ### Testes unitários
 
@@ -182,19 +323,25 @@ python -m unittest discover -s tests -v
 python scripts/test_nasa_service.py
 ```
 
-Esse teste realiza consultas reais para `andromeda`, `orion nebula` e
-`jupiter`, valida os campos obrigatórios e verifica a disponibilidade das URLs
-das imagens.
+Esse teste realiza consultas reais para `andromeda`, `orion nebula` e `jupiter`, valida os campos obrigatórios e verifica a disponibilidade das URLs das imagens.
 
-## Funcionalidades
+### Smoke test do Exoplanet Atmosphere Visualizer
 
-- Upload e pré-visualização de imagens astronômicas.
-- Classificação de galáxias, nebulosas, estrelas, aglomerados e planetas.
-- Pesquisa de imagens na biblioteca pública da NASA.
-- Pipeline multiagente para análise e geração de relatório.
-- Persistência dos resultados de visão, pesquisa e redação científica.
-- Consulta de análises anteriores.
-- Exibição dos dados estruturados usados por cada agente.
+```bash
+python scripts/test_exoplanet_agent.py
+```
+
+Esse teste carrega `data/images/exoplanets/k2-18b/atmosphere_composition.jpg`, executa o `ExoplanetSpectrumAgent`, salva o resultado pelo `ResultStorageService` e imprime o JSON estruturado.
+
+## Persistência de resultados
+
+Os resultados são armazenados pelo `ResultStorageService` seguindo a convenção:
+
+```text
+data/analysis_results/<nome_da_imagem>/
+```
+
+Cada agente salva sua saída em arquivo JSON separado, permitindo auditoria, rastreabilidade e consulta posterior no dashboard.
 
 ## Links e observações
 
@@ -205,17 +352,36 @@ das imagens.
 
 ### Decisões técnicas
 
-- A interface foi centralizada em Streamlit para permitir demonstração rápida
-  do pipeline e inspeção dos resultados.
+- A interface foi centralizada em Streamlit para permitir demonstração rápida do pipeline e inspeção dos resultados.
 - Os agentes trocam estruturas tipadas para reduzir ambiguidades entre etapas.
 - Os resultados são persistidos separadamente por imagem e por agente.
-- O cliente NASA usa apenas a biblioteca padrão do Python, evitando uma
-  dependência HTTP adicional.
-- Segredos locais não devem ser versionados. O arquivo `.env.example` documenta
-  apenas as variáveis necessárias.
+- O cliente NASA usa apenas a biblioteca padrão do Python, evitando uma dependência HTTP adicional.
+- O módulo de exoplanetas foi mantido isolado para não interferir no pipeline original de análise de imagens.
+- Segredos locais não devem ser versionados. O arquivo `.env.example` documenta apenas as variáveis necessárias.
+
+## Trabalhos futuros
+
+1. Geração automática de imagens científicas de exoplanetas a partir de prompts validados.
+2. Integração com mais datasets do JWST.
+3. Expansão da base de conhecimento astronômica.
+4. Deploy em cloud pública.
+5. Simulações avançadas de atmosferas.
+
+### Aplicações Futuras de Computação Quântica
+
+As aplicações abaixo são conceituais e não estão implementadas nesta versão do projeto.
+
+- **Simulação de atmosferas de exoplanetas:** uso futuro de métodos quânticos ou híbridos para explorar modelos atmosféricos complexos.
+- **Modelagem do interior de estrelas de nêutrons:** investigação conceitual de algoritmos quânticos aplicados a estados extremos da matéria.
+- **Otimização de cálculos astrofísicos complexos:** apoio a busca de parâmetros, seleção de modelos e problemas de otimização de grande escala.
+- **Apoio a futuras missões espaciais:** estudo de técnicas quânticas para planejamento, análise de dados e simulações em contextos de exploração espacial.
 
 ## Histórico de lançamentos
 
+- **1.1.0 - 07/06/2026**
+  - Inclusão do Exoplanet Atmosphere Visualizer.
+  - Interpretação educacional do gráfico atmosférico de K2-18 b.
+  - Geração de relatório e prompt de conceito artístico.
 - **1.0.0 - 06/06/2026**
   - Integração completa do pipeline multiagente.
   - Dashboard Streamlit e histórico de análises.

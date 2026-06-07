@@ -18,6 +18,8 @@ The module follows the existing AstroLens structure:
 
 - `src/agents/exoplanet_spectrum_agent.py` contains the isolated vision agent.
 - `src/reporting/exoplanet_reporter.py` contains the isolated text reporter.
+- `src/reporting/artist_concept_prompt_enhancer.py` contains the isolated
+  prompt enhancement layer for future image-generation use.
 - `ResultStorageService` persists the new dataclass outputs under the existing
   `data/analysis_results/<image_name>/` convention.
 - `app.py` exposes a new Streamlit navigation option:
@@ -47,7 +49,9 @@ image-analysis workflow remain separate.
 
 5. `ExoplanetReporter` generates an educational report with uncertainty-aware
    language and a final `artist_concept_prompt`.
-6. Both outputs are saved by `ResultStorageService`.
+6. `ArtistConceptPromptEnhancer` transforms the basic artist concept prompt into
+   a richer visual prompt while preserving scientific caution.
+7. The agent and report outputs are saved by `ResultStorageService`.
 
 ## Example Outputs
 
@@ -79,6 +83,78 @@ Expected report JSON:
 }
 ```
 
+Expected enhanced artist prompt JSON:
+
+```json
+{
+  "enhanced_artist_prompt": "A scientifically plausible NASA/JWST-inspired artist concept of K2-18 b...",
+  "visual_style": "NASA/JWST-inspired artist concept, scientifically plausible, realistic astrophysics, cinematic lighting, high detail, educational scientific visualization",
+  "scientific_constraints": [
+    "Represent K2-18 b as a sub-Neptune exoplanet, not an Earth twin.",
+    "Include methane and carbon dioxide as atmospheric components.",
+    "Describe dimethyl sulfide (DMS) only as an uncertain candidate atmospheric feature."
+  ],
+  "negative_prompt": "fantasy landscape, alien cities, spaceships, humanoids, exaggerated colors, cartoon style, impossible surface details, unsupported biological claims"
+}
+```
+
+## Artist Concept Prompt Enhancer
+
+### Purpose
+
+`ArtistConceptPromptEnhancer` improves the basic `artist_concept_prompt`
+produced by `ExoplanetReporter`. The enhanced prompt is designed for a future
+image-generation module, but this component does not generate images.
+
+The enhancer adds richer visual direction, including a dense atmosphere,
+atmospheric haze, cloud layers, red dwarf illumination, deep space background,
+and possible liquid reservoirs or ocean-like regions hidden beneath clouds.
+
+### Input Schema
+
+```json
+{
+  "planet_name": "K2-18 b",
+  "detected_molecules": ["Methane", "Carbon Dioxide", "Dimethyl Sulfide"],
+  "exoplanet_report": {
+    "planet_summary": "",
+    "atmosphere_description": "",
+    "habitability_notes": "",
+    "scientific_relevance": "",
+    "artist_concept_prompt": ""
+  },
+  "original_artist_concept_prompt": ""
+}
+```
+
+### Output Schema
+
+```json
+{
+  "enhanced_artist_prompt": "",
+  "visual_style": "",
+  "scientific_constraints": [],
+  "negative_prompt": ""
+}
+```
+
+### Scientific Limitations
+
+- The enhanced prompt is a visualization prompt, not a scientific result.
+- It must not claim confirmed habitability, confirmed oceans, or confirmed life.
+- Dimethyl sulfide must be described only as a possible or uncertain candidate
+  atmospheric feature.
+- Visual elements should remain scientifically plausible and educational.
+- The negative prompt excludes fantasy landscapes, alien cities, spaceships,
+  humanoids, exaggerated colors, cartoon style, impossible surface details, and
+  unsupported biological claims.
+
+### Future Use With Image Generation
+
+The enhanced prompt can be passed to a future image-generation module after
+review. That future module should keep the same scientific constraints and avoid
+presenting generated artwork as observational evidence.
+
 ## Scientific Limitations
 
 - The module interprets a visualization, not raw JWST spectra.
@@ -98,6 +174,8 @@ Expected report JSON:
 - Add support for additional JWST datasets through separate isolated modules.
 - Add an image-generation module that consumes `artist_concept_prompt` without
   changing this analysis flow.
+- Add an optional image-generation module that consumes
+  `enhanced_artist_prompt` after scientific review.
 
 ## Future Quantum Astrophysics Applications
 
