@@ -7,21 +7,33 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any, Dict, Type, Union
 
+from src.agents.exoplanet_spectrum_agent import ExoplanetAtmosphereResult
 from src.agents.research_agent import ResearchResult
 from src.agents.science_writer_agent import ScienceReport
 from src.agents.vision_agent import VisionAnalysisResult
+from src.reporting.exoplanet_reporter import ExoplanetReport
 
-ResultType = Union[VisionAnalysisResult, ResearchResult, ScienceReport]
+ResultType = Union[
+    VisionAnalysisResult,
+    ResearchResult,
+    ScienceReport,
+    ExoplanetAtmosphereResult,
+    ExoplanetReport,
+]
 ResultClass = Union[
     Type[VisionAnalysisResult],
     Type[ResearchResult],
     Type[ScienceReport],
+    Type[ExoplanetAtmosphereResult],
+    Type[ExoplanetReport],
 ]
 
 _RESULT_FILES: Dict[type, str] = {
     VisionAnalysisResult: "vision_result.json",
     ResearchResult: "research_result.json",
     ScienceReport: "science_report.json",
+    ExoplanetAtmosphereResult: "exoplanet_atmosphere_result.json",
+    ExoplanetReport: "exoplanet_report.json",
 }
 _RESULT_ALIASES: Dict[str, ResultClass] = {
     "vision": VisionAnalysisResult,
@@ -30,6 +42,10 @@ _RESULT_ALIASES: Dict[str, ResultClass] = {
     "research_result": ResearchResult,
     "science": ScienceReport,
     "science_report": ScienceReport,
+    "exoplanet": ExoplanetAtmosphereResult,
+    "exoplanet_atmosphere": ExoplanetAtmosphereResult,
+    "exoplanet_atmosphere_result": ExoplanetAtmosphereResult,
+    "exoplanet_report": ExoplanetReport,
 }
 
 
@@ -121,6 +137,26 @@ def _build_result(result_class: ResultClass, payload: Dict[str, Any]) -> ResultT
             ),
             earth_impact=str(payload.get("earth_impact", "")),
             curiosities=str(payload.get("curiosities", "")),
+        )
+
+    if result_class is ExoplanetAtmosphereResult:
+        return ExoplanetAtmosphereResult(
+            planet=str(payload.get("planet", "")),
+            planet_type=str(payload.get("planet_type", "")),
+            detected_molecules=[
+                str(item) for item in payload.get("detected_molecules", [])
+            ],
+            scientific_confidence=float(payload.get("scientific_confidence", 0.0)),
+            summary=str(payload.get("summary", "")),
+        )
+
+    if result_class is ExoplanetReport:
+        return ExoplanetReport(
+            planet_summary=str(payload.get("planet_summary", "")),
+            atmosphere_description=str(payload.get("atmosphere_description", "")),
+            habitability_notes=str(payload.get("habitability_notes", "")),
+            scientific_relevance=str(payload.get("scientific_relevance", "")),
+            artist_concept_prompt=str(payload.get("artist_concept_prompt", "")),
         )
 
     raise ValueError(f"Unsupported result type: {result_class.__name__}")

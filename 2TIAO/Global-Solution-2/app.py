@@ -12,15 +12,28 @@ from urllib.request import Request, urlopen
 
 import streamlit as st
 
+from src.agents.exoplanet_spectrum_agent import (
+    ExoplanetAtmosphereResult,
+    ExoplanetSpectrumAgent,
+)
 from src.agents.research_agent import ResearchAgent, ResearchResult
 from src.agents.science_writer_agent import ScienceReport, ScienceWriterAgent
 from src.agents.vision_agent import VisionAgent, VisionAnalysisResult
+from src.reporting.exoplanet_reporter import ExoplanetReport, ExoplanetReporter
 from src.services.gemini_service import GeminiService
 from src.services.nasa_service import NASAImage, NASAService, NASAServiceError
 from src.storage.result_storage_service import ResultStorageService
 
 _MAX_NASA_RESULTS = 12
 _MAX_NASA_IMAGE_BYTES = 20 * 1024 * 1024
+_K2_18B_CHART_PATH = (
+    Path(__file__).resolve().parent
+    / "data"
+    / "images"
+    / "exoplanets"
+    / "k2-18b"
+    / "atmosphere_composition.jpg"
+)
 
 
 def main() -> None:
@@ -36,7 +49,13 @@ def main() -> None:
     st.sidebar.caption("Astronomy image intelligence")
     page = st.sidebar.radio(
         "Navigation",
-        ["Home", "Analyze Image", "NASA Explorer", "Previous Analyses"],
+        [
+            "Home",
+            "Analyze Image",
+            "NASA Explorer",
+            "Exoplanet Atmosphere Visualizer",
+            "Previous Analyses",
+        ],
         label_visibility="collapsed",
     )
 
@@ -48,6 +67,8 @@ def main() -> None:
         _render_analyze_image(storage_service)
     elif page == "NASA Explorer":
         _render_nasa_explorer(storage_service)
+    elif page == "Exoplanet Atmosphere Visualizer":
+        _render_exoplanet_visualizer(storage_service)
     else:
         _render_previous_analyses(storage_service)
 
@@ -213,6 +234,66 @@ def _render_nasa_explorer(storage_service: ResultStorageService) -> None:
     )
 
 
+def _render_exoplanet_visualizer(storage_service: ResultStorageService) -> None:
+    st.title("Exoplanet Atmosphere Visualizer")
+    st.markdown(
+        "This standalone AstroLens module interprets the visible labels in a "
+        "published JWST atmospheric composition visualization for K2-18 b. It is "
+        "an educational computer-vision demonstration and does not perform real "
+        "scientific measurements, spectral peak fitting, or atmospheric retrieval."
+    )
+
+    image_path = _K2_18B_CHART_PATH
+    if not image_path.exists():
+        st.error(f"K2-18 b atmosphere chart not found: {image_path}")
+        return
+    if image_path.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+        st.error(
+            "Unsupported K2-18 b atmosphere chart format. "
+            "Supported formats: .jpg, .jpeg, .png."
+        )
+        return
+
+    preview_col, action_col = st.columns([1.4, 1])
+    with preview_col:
+        st.subheader("JWST Atmosphere Composition Chart")
+        st.image(str(image_path), width="stretch")
+
+    with action_col:
+        st.subheader("Standalone Agent Flow")
+        st.write(
+            "Run ExoplanetSpectrumAgent on the fixed K2-18 b chart, then generate "
+            "an educational report and an artist concept prompt."
+        )
+        run_analysis = st.button("Run Analysis", type="primary")
+
+    if not run_analysis:
+        return
+
+    with st.status("Running exoplanet atmosphere analysis...", expanded=True) as status:
+        try:
+            gemini_service = GeminiService()
+
+            st.write("Running ExoplanetSpectrumAgent...")
+            atmosphere_result = ExoplanetSpectrumAgent(gemini_service).analyze(
+                image_path
+            )
+            storage_service.save_result(image_path, atmosphere_result)
+
+            st.write("Running ExoplanetReporter...")
+            exoplanet_report = ExoplanetReporter(gemini_service).generate(
+                atmosphere_result
+            )
+            storage_service.save_result(image_path, exoplanet_report)
+            status.update(label="Exoplanet analysis complete", state="complete")
+        except Exception as exc:
+            status.update(label="Exoplanet analysis failed", state="error")
+            st.error(str(exc))
+            return
+
+    _render_exoplanet_results(atmosphere_result, exoplanet_report)
+
+
 def _run_and_render_pipeline(
     *,
     image_path: Path,
@@ -320,6 +401,48 @@ def _render_analysis_results(
         tab_vision.json(asdict(vision_result))
         tab_research.json(asdict(research_result))
         tab_report.json(asdict(science_report))
+
+
+def _render_exoplanet_results(
+    atmosphere_result: ExoplanetAtmosphereResult,
+    exoplanet_report: ExoplanetReport,
+) -> None:
+    st.divider()
+    st.subheader("Exoplanet Agent JSON Output")
+
+    metric_cols = st.columns(3)
+    metric_cols[0].metric("Planet", atmosphere_result.planet)
+    metric_cols[1].metric("Planet Type", atmosphere_result.planet_type or "Unknown")
+    metric_cols[2].metric(
+        "Interpretation Confidence",
+        f"{atmosphere_result.scientific_confidence:.0%}",
+    )
+
+    if atmosphere_result.detected_molecules:
+        st.markdown("**Detected Molecules**")
+        st.caption(", ".join(atmosphere_result.detected_molecules))
+
+    st.json(asdict(atmosphere_result))
+
+    st.subheader("Human-Readable Report")
+    summary_col, atmosphere_col = st.columns(2)
+    with summary_col:
+        _render_report_section("Planet Summary", exoplanet_report.planet_summary)
+    with atmosphere_col:
+        _render_report_section(
+            "Atmosphere Description", exoplanet_report.atmosphere_description
+        )
+
+    habitability_col, relevance_col = st.columns(2)
+    with habitability_col:
+        _render_report_section("Habitability Notes", exoplanet_report.habitability_notes)
+    with relevance_col:
+        _render_report_section(
+            "Scientific Relevance", exoplanet_report.scientific_relevance
+        )
+
+    st.subheader("Artist Concept Prompt")
+    st.code(exoplanet_report.artist_concept_prompt, language="text")
 
 
 def _render_report_section(title: str, body: str) -> None:
