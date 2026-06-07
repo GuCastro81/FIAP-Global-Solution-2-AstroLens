@@ -1,84 +1,239 @@
 # FIAP - Faculdade de Informática e Administração Paulista
 
 <p align="center">
-<a href="https://www.fiap.com.br/">
-  <img src="../../../assets/logo-fiap.png" 
-       alt="FIAP - Faculdade de Informática e Administração Paulista" 
-       width="40%">
-</a>
+  <a href="https://www.fiap.com.br/">
+    <img src="../../assets/logo-fiap.png"
+         alt="FIAP - Faculdade de Informática e Administração Paulista"
+         width="40%">
+  </a>
 </p>
 
 <br>
 
-# Nome do projeto/atividade
+# AstroLens AI
 
 ## Nome do grupo
 
-## 👨‍🎓 Integrantes: 
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do integrante 1</a>
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do integrante 2</a>
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do integrante 3</a> 
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do integrante 4</a> 
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do integrante 5</a>
+`PREENCHER: nome oficial do grupo`
 
-## 👩‍🏫 Professores:
-### Tutor(a) 
-- <a href="https://www.linkedin.com/in/sabrina-otoni-22525519b/">Nome do Tutor</a>
+## Integrantes
+
+- `PREENCHER: nome, RM e link do LinkedIn do integrante 1`
+- `PREENCHER: nome, RM e link do LinkedIn do integrante 2`
+- `PREENCHER: nome, RM e link do LinkedIn do integrante 3`
+- `PREENCHER: nome, RM e link do LinkedIn do integrante 4`
+- `PREENCHER: nome, RM e link do LinkedIn do integrante 5`
+
+## Professores
+
+### Tutor(a)
+
+- `PREENCHER: nome e link do tutor`
+
 ### Coordenador(a)
-- <a href="https://www.linkedin.com/in/andregodoichiovato/">Nome do Coordenador</a>
 
+- `PREENCHER: nome e link do coordenador`
 
-## 📜 Descrição
+## Descrição
 
-*Descreva seu projeto com base no texto da Global Solution (até 600 palavras)*
+AstroLens AI é uma aplicação de inteligência artificial para análise de imagens
+astronômicas e geração de relatórios científicos acessíveis. A solução combina
+visão computacional multimodal, agentes especializados, consulta a fontes
+astronômicas e uma interface interativa construída com Streamlit.
 
+O fluxo principal começa com uma imagem enviada pelo usuário ou selecionada na
+NASA Image and Video Library. O `VisionAgent`, apoiado pelo Gemini Vision,
+classifica o objeto observado, estima a confiança da análise e identifica
+objetos e tags científicas. Em seguida, o `ResearchAgent` consulta a base de
+conhecimento local para recuperar definições, relevância científica,
+contribuições para a exploração espacial e possíveis impactos na Terra. O
+`ScienceWriterAgent` consolida essas informações em um relatório estruturado,
+com resumo científico, importância para a exploração espacial, impacto
+terrestre e curiosidades.
 
-## 📁 Estrutura de pastas
+A página NASA Explorer permite pesquisar imagens reais da biblioteca pública da
+NASA, visualizar os resultados e enviar uma imagem selecionada pelo mesmo
+pipeline de análise. Os resultados de cada etapa são persistidos em JSON por
+meio do `ResultStorageService`, permitindo auditoria e consulta posterior no
+dashboard.
 
-Dentre os arquivos e pastas presentes na raiz do projeto, definem-se:
+O projeto demonstra integração de IA generativa, visão multimodal, arquitetura
+multiagente, consumo de API pública, persistência de resultados e comunicação
+científica. Seu objetivo é aproximar conteúdos de astronomia do público e
+evidenciar como tecnologias desenvolvidas para pesquisa espacial podem gerar
+conhecimento e aplicações relevantes para a sociedade.
 
-- <b>docs</b>: Pasta destinada à documentação textual, incluindo brainstorm, atas e registros de reuniões, desenhos, prints, diagramas, storyboard, estratégia de IA e arquitetura e etc.
+## Arquitetura da solução
 
-- <b>src</b>: Todo o código fonte desenvolvido, como scripts em Python, R, JS ou HTML, notebooks, códigos para ESP32/Arduino, APIs ou microsserviços, além de modelos, inferências e etc. Os tipos de arquivos e códigos são definidos no enunciado da atividade.
+```text
+Imagem local ou NASA Image Library
+              |
+              v
+         VisionAgent
+              |
+              v
+        ResearchAgent
+              |
+              v
+    ScienceWriterAgent
+              |
+              v
+ ResultStorageService + Streamlit
+```
 
-- <b>data</b>: Contém os dados utilizados, como arquivos CSV, Excel, JSON, bases sintéticas e etc.
+A descrição detalhada dos módulos e contratos está em
+[`docs/architecture.md`](docs/architecture.md).
 
-- <b>README.md</b>: Arquivo que serve como guia e explicação geral sobre o projeto (o mesmo que você está lendo agora).
+## Estrutura de pastas
 
+```text
+Global-Solution-2/
+├── README.md
+├── app.py
+├── requirements.txt
+├── requirements-rag.txt
+├── configs/
+├── data/
+│   ├── analysis_results/
+│   ├── images/
+│   └── knowledge_base/
+├── docs/
+│   ├── architecture.md
+│   ├── roadmap.md
+│   ├── data-sources.md
+│   ├── glossary.md
+│   └── nasa_service.md
+├── scripts/
+├── src/
+│   ├── agents/
+│   ├── analytics/
+│   ├── api/
+│   ├── config/
+│   ├── core/
+│   ├── data/
+│   ├── rag/
+│   ├── reporting/
+│   ├── services/
+│   ├── storage/
+│   ├── ui/
+│   └── vision/
+└── tests/
+```
 
-‼️ OBSERVAÇÃO DO TUTOR, favor desconsiderar do seu arquivo final: não há obrigação de usar todas as pastas, use apenas o que fizer SENTIDO para a entrega. ‼️
+- **docs**: documentação técnica, arquitetura, fontes e planejamento.
+- **src**: agentes, serviços, persistência e demais módulos da aplicação.
+- **data**: imagens, base de conhecimento e resultados estruturados.
+- **tests**: testes unitários dos serviços, agentes e armazenamento.
+- **scripts**: testes de integração e utilitários de execução.
+- **configs**: configurações auxiliares.
+- **app.py**: ponto de entrada do dashboard Streamlit.
 
+## Tecnologias utilizadas
 
-## 📎 Links e Observações
+- Python 3.11
+- Streamlit 1.58
+- Google Gemini API (`google-genai`)
+- NASA Image and Video Library API
+- Plotly
+- `unittest`
 
-- <b>Listagem de Links</b>: Links do projeto (ex. vídeos da entrega, páginas, etc.), 
+## Como executar
 
-- <b>Explicação de decisões técnicas</b>: Observações do projeto,
+### Pré-requisitos
 
-- <b>Observações Gerais</b>: Caso o projeto seja relacionado à alguma competição, deixar registrado no README se aceita ou não participar.
+- Python 3.11 ou compatível
+- Chave válida para a API Gemini
+- Acesso à internet para Gemini e NASA Image Library
 
+### Instalação
 
-## 🔧 Como executar o código
+```bash
+cd 2TIAO/Global-Solution-2
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-*Acrescentar as informações necessárias sobre pré-requisitos (IDEs, serviços, bibliotecas etc.) e instalação básica do projeto, descrevendo eventuais versões utilizadas. Colocar um passo a passo de como o leitor pode baixar o seu código e executá-lo a partir de sua máquina ou seu repositório.*
+Edite `.env` e informe:
 
+```dotenv
+GEMINI_API_KEY=sua_chave_gemini
+```
 
-## 🗃 Histórico de lançamentos
+### Dashboard
 
-* 0.5.0 - XX/XX/2024
-    * 
-* 0.4.0 - XX/XX/2024
-    * 
-* 0.3.0 - XX/XX/2024
-    * 
-* 0.2.0 - XX/XX/2024
-    * 
-* 0.1.0 - XX/XX/2024
-    *
+```bash
+streamlit run app.py
+```
 
----
+A aplicação será disponibilizada normalmente em
+`http://localhost:8501`.
 
+### Testes unitários
 
-## 📋 Licença
+```bash
+python -m unittest discover -s tests -v
+```
 
-<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"><p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/SabrinaOtoni/TEMPLATE-FIAP-GRAD-ON-IA">MODELO GIT FIAP</a> por <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://fiap.com.br">FIAP</a> está licenciado sobre <a href="http://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Attribution 4.0 International</a>.</p>
+### Smoke test da NASA
+
+```bash
+python scripts/test_nasa_service.py
+```
+
+Esse teste realiza consultas reais para `andromeda`, `orion nebula` e
+`jupiter`, valida os campos obrigatórios e verifica a disponibilidade das URLs
+das imagens.
+
+## Funcionalidades
+
+- Upload e pré-visualização de imagens astronômicas.
+- Classificação de galáxias, nebulosas, estrelas, aglomerados e planetas.
+- Pesquisa de imagens na biblioteca pública da NASA.
+- Pipeline multiagente para análise e geração de relatório.
+- Persistência dos resultados de visão, pesquisa e redação científica.
+- Consulta de análises anteriores.
+- Exibição dos dados estruturados usados por cada agente.
+
+## Links e observações
+
+- **Repositório:** `PREENCHER: URL do repositório final`
+- **Vídeo de apresentação:** `PREENCHER: URL do vídeo`
+- **Aplicação publicada:** `PREENCHER: URL, se houver`
+- **Documentação da NASA:** <https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf>
+
+### Decisões técnicas
+
+- A interface foi centralizada em Streamlit para permitir demonstração rápida
+  do pipeline e inspeção dos resultados.
+- Os agentes trocam estruturas tipadas para reduzir ambiguidades entre etapas.
+- Os resultados são persistidos separadamente por imagem e por agente.
+- O cliente NASA usa apenas a biblioteca padrão do Python, evitando uma
+  dependência HTTP adicional.
+- Segredos locais não devem ser versionados. O arquivo `.env.example` documenta
+  apenas as variáveis necessárias.
+
+## Histórico de lançamentos
+
+- **1.0.0 - 06/06/2026**
+  - Integração completa do pipeline multiagente.
+  - Dashboard Streamlit e histórico de análises.
+  - NASA Explorer com pesquisa e análise de imagens.
+  - Persistência estruturada e testes automatizados.
+- **0.5.0 - 01/06/2026**
+  - Implementação inicial dos agentes e serviços Gemini.
+- **0.1.0 - 01/06/2026**
+  - Estrutura inicial e documentação de arquitetura.
+
+## Licença
+
+<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;"
+src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1">
+<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;"
+src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1">
+
+Este trabalho acadêmico segue a licença
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
+O modelo de organização foi baseado no
+[template FIAP](https://github.com/SabrinaOtoni/TEMPLATE-FIAP-GRAD-ON-IA).
