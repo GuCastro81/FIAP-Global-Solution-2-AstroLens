@@ -12,27 +12,21 @@
 
 # AstroLens AI
 
-## Nome do grupo
-
-`PREENCHER: nome oficial do grupo`
-
 ## Integrantes
 
-- `PREENCHER: nome, RM e link do LinkedIn do integrante 1`
-- `PREENCHER: nome, RM e link do LinkedIn do integrante 2`
-- `PREENCHER: nome, RM e link do LinkedIn do integrante 3`
-- `PREENCHER: nome, RM e link do LinkedIn do integrante 4`
-- `PREENCHER: nome, RM e link do LinkedIn do integrante 5`
+- Amandha Nery - RM560030
+- Gustavo Castro - RM560831
+- Kild Fernandes - RM560615
 
 ## Professores
 
 ### Tutor(a)
 
-- `PREENCHER: nome e link do tutor`
+- Leonardo Ruiz
 
 ### Coordenador(a)
 
-- `PREENCHER: nome e link do coordenador`
+- André Godoy
 
 ## Resumo executivo
 
