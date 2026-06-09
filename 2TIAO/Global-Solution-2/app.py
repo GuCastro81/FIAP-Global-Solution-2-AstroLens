@@ -16,6 +16,7 @@ from src.agents.exoplanet_spectrum_agent import (
     ExoplanetAtmosphereResult,
     ExoplanetSpectrumAgent,
 )
+from src.agents.image_generation_agent import ImageGenerationAgent
 from src.agents.research_agent import ResearchAgent, ResearchResult
 from src.agents.science_writer_agent import ScienceReport, ScienceWriterAgent
 from src.agents.vision_agent import VisionAgent, VisionAnalysisResult
@@ -268,31 +269,38 @@ def _render_exoplanet_visualizer(storage_service: ResultStorageService) -> None:
         )
         run_analysis = st.button("Run Analysis", type="primary")
 
-    if not run_analysis:
-        return
+    if run_analysis:
+        with st.status("Running exoplanet atmosphere analysis...", expanded=True) as status:
+            try:
+                gemini_service = GeminiService()
 
-    with st.status("Running exoplanet atmosphere analysis...", expanded=True) as status:
-        try:
-            gemini_service = GeminiService()
+                st.write("Running ExoplanetSpectrumAgent...")
+                atmosphere_result = ExoplanetSpectrumAgent(gemini_service).analyze(
+                    image_path
+                )
+                storage_service.save_result(image_path, atmosphere_result)
 
-            st.write("Running ExoplanetSpectrumAgent...")
-            atmosphere_result = ExoplanetSpectrumAgent(gemini_service).analyze(
-                image_path
-            )
-            storage_service.save_result(image_path, atmosphere_result)
+                st.write("Running ExoplanetReporter...")
+                exoplanet_report = ExoplanetReporter(gemini_service).generate(
+                    atmosphere_result
+                )
+                storage_service.save_result(image_path, exoplanet_report)
+                st.session_state.exoplanet_atmosphere_result = asdict(atmosphere_result)
+                st.session_state.exoplanet_report = asdict(exoplanet_report)
+                st.session_state.exoplanet_generated_image = None
+                status.update(label="Exoplanet analysis complete", state="complete")
+            except Exception as exc:
+                status.update(label="Exoplanet analysis failed", state="error")
+                st.error(str(exc))
+                return
 
-            st.write("Running ExoplanetReporter...")
-            exoplanet_report = ExoplanetReporter(gemini_service).generate(
-                atmosphere_result
-            )
-            storage_service.save_result(image_path, exoplanet_report)
-            status.update(label="Exoplanet analysis complete", state="complete")
-        except Exception as exc:
-            status.update(label="Exoplanet analysis failed", state="error")
-            st.error(str(exc))
-            return
-
-    _render_exoplanet_results(atmosphere_result, exoplanet_report)
+    stored_atmosphere = st.session_state.get("exoplanet_atmosphere_result")
+    stored_report = st.session_state.get("exoplanet_report")
+    if stored_atmosphere and stored_report:
+        _render_exoplanet_results(
+            _build_exoplanet_atmosphere_result(stored_atmosphere),
+            _build_exoplanet_report(stored_report),
+        )
 
 
 def _run_and_render_pipeline(
@@ -463,10 +471,75 @@ def _render_exoplanet_results(
     constraints_tab.json(asdict(enhanced_prompt)["scientific_constraints"])
     negative_tab.code(enhanced_prompt.negative_prompt, language="text")
 
+    st.subheader("Optional Image Generation")
+    st.caption(
+        "This uses Google Gemini/Imagen when available. No OpenAI API is required."
+    )
+    if st.button("Generate Image", type="secondary"):
+        generation_result = ImageGenerationAgent(GeminiService()).generate(
+            enhanced_artist_prompt=enhanced_prompt.enhanced_artist_prompt,
+            negative_prompt=enhanced_prompt.negative_prompt,
+            visual_style=enhanced_prompt.visual_style,
+        )
+        st.session_state.exoplanet_generated_image = asdict(generation_result)
+
+    generated_image = st.session_state.get("exoplanet_generated_image")
+    if not generated_image:
+        return
+
+    if generated_image.get("status") != "generated":
+        st.warning(
+            "Image generation is not available with the current API configuration. "
+            "The enhanced prompt can still be used manually."
+        )
+        if generated_image.get("message"):
+            st.caption(generated_image["message"])
+        return
+
+    image_path = Path(generated_image.get("image_path", ""))
+    if not image_path.exists():
+        st.warning(
+            "Image generation is not available with the current API configuration. "
+            "The enhanced prompt can still be used manually."
+        )
+        return
+
+    st.image(str(image_path), caption="Generated K2-18 b artist concept")
+    st.download_button(
+        "Download image",
+        data=image_path.read_bytes(),
+        file_name=image_path.name,
+        mime="image/png",
+    )
+
 
 def _render_report_section(title: str, body: str) -> None:
     st.markdown(f"**{title}**")
     st.write(body or "Not available.")
+
+
+def _build_exoplanet_atmosphere_result(
+    payload: dict,
+) -> ExoplanetAtmosphereResult:
+    return ExoplanetAtmosphereResult(
+        planet=str(payload.get("planet", "")),
+        planet_type=str(payload.get("planet_type", "")),
+        detected_molecules=[
+            str(item) for item in payload.get("detected_molecules", [])
+        ],
+        scientific_confidence=float(payload.get("scientific_confidence", 0.0)),
+        summary=str(payload.get("summary", "")),
+    )
+
+
+def _build_exoplanet_report(payload: dict) -> ExoplanetReport:
+    return ExoplanetReport(
+        planet_summary=str(payload.get("planet_summary", "")),
+        atmosphere_description=str(payload.get("atmosphere_description", "")),
+        habitability_notes=str(payload.get("habitability_notes", "")),
+        scientific_relevance=str(payload.get("scientific_relevance", "")),
+        artist_concept_prompt=str(payload.get("artist_concept_prompt", "")),
+    )
 
 
 def _list_saved_analyses(storage_service: ResultStorageService) -> list[str]:
